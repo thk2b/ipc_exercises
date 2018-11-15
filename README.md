@@ -21,3 +21,4 @@ Executes the executable with arguments and redirects the child's output to the f
 usage: `./exec_pipe <exec> [<arg> [...]] "|" <exec> [<arg> [...]]`
 
 Executes both executables with arguments, redirecting the first's `stdout` to the second's `stdin`.
+The commands must be separated by `|`.
