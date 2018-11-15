@@ -1,0 +1,32 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "(lldb) exec_cmd",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/exec_cmd",
+			"args": ["/bin/ls", "-l", "-a"],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "lldb"
+		},
+		{
+			"name": "(lldb) exec_pipe",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/exec_pipe",
+			"args": ["/bin/ls", "-l", "|", "/bin/cat", "-e"],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "lldb"
+		}
+	]
+}
