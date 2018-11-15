@@ -4,31 +4,32 @@
 #include <string.h>
 #define USAGE "<exec> [<arg> [...]] | <exec> [<arg> [...]]"
 
-// static int	exec_pipe_cmd(int fds[], char **cmd)
-// {
-
-// }
-
-static int	exec_pipe_child(int writes, int fd[], char **cmd)
+static int	select_pipe_end(int selected, int fd[])
 {
+	if (selected > 1 || selected < 0)
+		return (-1);
+	if (dup2(fd[selected], selected) == -1)
+		return (1);
+	if (close(fd[!selected]))
+		return (1);
+	return (0);
+}
+
+static int	exec_pipe_cmd(int selected, int fd[], char **cmd)
+{
+	pid_t	pid;
 	extern char	**environ;
 
-	if (writes)	/* map child process's stdout to the the pipe's write end */
+	pid = fork();
+	if (pid == -1)
+		return (error_ret("fork", 0));
+	if (pid == 0)
 	{
-		if (dup2(fd[1], 1) == -1)
-			return (error("exec pipe write child"));
-		if (close(fd[0]))
-			return (error("close"));
+		if (select_pipe_end(selected, fd))
+			return (error("select pipe end"));
+		_exit(execve(cmd[0], cmd, environ));
 	}
-	else		/* map child process's stdin to the the pipe's read end */
-	{
-		if (dup2(fd[0], 0) == -1)
-			return (error("exec pipe read child"));
-		if (close(fd[1]))
-			return (error("close"));
-	}
-	execve(cmd[0], cmd, environ);
-	return (error("execve"));
+	return (pid);
 }
 
 static int	exec_pipe(char **cmd1, char **cmd2)
@@ -39,22 +40,17 @@ static int	exec_pipe(char **cmd1, char **cmd2)
 
 	if (pipe(fd))
 		return (error("pipe"));
-	pid[0] = fork();
-	if (pid[0] == -1)
-		return (error("fork cmd1"));
-	if (pid[0] == 0)
-		_exit(exec_pipe_child(1, fd, cmd1));
-	pid[1] = fork();
-	if (pid[1] == -1)
-		return (error("fork cmd2"));
-	if (pid[1] == 0)
-		_exit(exec_pipe_child(0, fd, cmd2));
+	if ((pid[0] = exec_pipe_cmd(1, fd, cmd1)) == 0)
+		return (1);
+	if ((pid[1] = exec_pipe_cmd(0, fd, cmd2)) == 0)
+		return (1);
 	if (close(fd[0]) || close(fd[1]))
 		return (error("close pipe from parent"));
-	if (waitpid(-1, status, 0) == -1)
+	if (waitpid(pid[0], status, WUNTRACED) == -1)
 		return (error("waitpid 1"));
-	if (waitpid(-1, status + 1, 0) == -1)
+	if (waitpid(pid[1], status + 1, WUNTRACED) == -1)
 		return (error("waitpid 2"));
+	printf("[%d]: %d | [%d]: %d\n", pid[0], status[0], pid[1], status[1]);
 	return (status[0] || status[1]);
 }
 

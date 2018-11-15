@@ -18,6 +18,12 @@ int		error(char *msg)
 	return (errno);
 }
 
+int		error_ret(char *msg, int ret)
+{
+	error(msg);
+	return (ret);
+}
+
 int		validate_executable(char *path)
 {
 	if (access(path, X_OK))
