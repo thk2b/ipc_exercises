@@ -23,6 +23,8 @@ static int	exec_redirect(char **cmd, char *filename)
 	int		status;
 	pid_t	pid;
 
+	if (validate_executable(cmd[0]))
+		return (1);
 	if ((fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, CREAT_PERMS)) == -1)
 		return (error("open"));
 	pid = fork();

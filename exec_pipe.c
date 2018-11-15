@@ -38,6 +38,8 @@ static int	exec_pipe(char **cmd1, char **cmd2)
 	int		status[2];
 	pid_t	pid[2];
 
+	if (validate_executable(cmd1[0]) || validate_executable(cmd2[0]))
+		return (1);
 	if (pipe(fd))
 		return (error("pipe"));
 	if ((pid[0] = exec_pipe_cmd(1, fd, cmd1)) == 0)
@@ -46,10 +48,12 @@ static int	exec_pipe(char **cmd1, char **cmd2)
 		return (1);
 	if (close(fd[0]) || close(fd[1]))
 		return (error("close pipe from parent"));
+	signal(SIGINT, SIG_IGN);
 	if (waitpid(pid[0], status, WUNTRACED) == -1)
 		return (error("waitpid 1"));
 	if (waitpid(pid[1], status + 1, WUNTRACED) == -1)
 		return (error("waitpid 2"));
+	signal(SIGINT, SIG_DFL);
 	printf("[%d]: %d | [%d]: %d\n", pid[0], status[0], pid[1], status[1]);
 	return (status[0] || status[1]);
 }
